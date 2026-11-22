@@ -780,8 +780,10 @@ fn make_executable(path: &Path) -> Result<(), Error> {
 }
 
 #[cfg(not(unix))]
+#[allow(clippy::unnecessary_wraps)]
 fn make_executable(_path: &Path) -> Result<(), Error> {
-    // Executability is expressed by the file extension on Windows.
+    // Executability is expressed by the file extension on Windows, so there is
+    // nothing to do; the `Result` keeps the call site identical on both OSes.
     Ok(())
 }
 

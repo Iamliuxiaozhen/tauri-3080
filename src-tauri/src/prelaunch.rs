@@ -638,6 +638,8 @@ fn read_tail(path: &Path, max_lines: usize) -> Vec<String> {
 mod tests {
     use super::*;
 
+    /// Creates a profile whose script directory already contains a hook.
+    #[cfg(unix)]
     fn profile_with_script(body: &str) -> Profile {
         let profile = Profile {
             id: "hook-test".to_owned(),

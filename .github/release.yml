@@ -1,0 +1,59 @@
+# Release notes configuration for GitHub's automatic notes generator.
+#
+# Used by the Release workflow (`generateReleaseNotes: true`) and by
+# `gh release create --generate-notes`.
+name-template: 'tauri-3080 $RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: 'Features'
+    labels: ['kind: feature', 'feat']
+  - title: 'Fixes'
+    labels: ['kind: bug', 'fix']
+  - title: 'Translations'
+    labels: ['area: i18n']
+  - title: 'Documentation'
+    labels: ['area: docs']
+  - title: 'Build, CI and dependencies'
+    labels: ['area: ci', 'ci: release', 'ci: smoke', 'dependencies']
+  - title: 'Other changes'
+    labels: ['*']
+exclude:
+  labels: ['duplicate', 'wontfix']
+  authors: ['dependabot[bot]']
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&'
+version-resolver:
+  major:
+    labels: ['breaking']
+  minor:
+    labels: ['kind: feature']
+  patch:
+    labels: ['kind: bug', 'area: i18n', 'area: docs']
+  default: patch
+template: |
+  ## What's changed
+
+  $CHANGES
+
+  ## Install
+
+  Download the installer for your platform below.
+
+  | Platform | Artifact |
+  | --- | --- |
+  | Linux (x86_64) | `.deb`, `.rpm`, `.AppImage` |
+  | macOS (Apple silicon) | `aarch64.dmg` |
+  | macOS (Intel) | `x64.dmg` |
+  | Windows (x86_64) | `x64_en-US.msi`, `x64-setup.exe` |
+
+  Linux packages need `libwebkit2gtk-4.1` and `libayatana-appindicator3`, which
+  the `.deb` and `.rpm` declare as dependencies.
+
+  ## Configuration
+
+  The launcher reads `config.toml` from `~/.config/tauri-3080` on Linux,
+  `~/Library/Application Support/tauri-3080` on macOS and `%APPDATA%\tauri-3080`
+  on Windows. See the [README](https://github.com/Iamliuxiaozhen/tauri-3080#configuration)
+  for the file format and the pre-launch hook contract.
+
+  **Full changelog**: https://github.com/Iamliuxiaozhen/tauri-3080/commits/$PREVIOUS_TAG

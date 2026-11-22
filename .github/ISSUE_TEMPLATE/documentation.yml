@@ -1,0 +1,36 @@
+name: Documentation
+description: Report a documentation problem or suggest an improvement.
+title: 'docs: '
+labels: ['area: docs']
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Where is the problem?
+      description: File and section, or a link.
+      placeholder: e.g. README.md → Configuration → Pre-launch hooks
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested wording
+      description: If you already have a fix in mind, paste it here.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched the existing issues.
+          required: true
+        - label: I would be willing to open a pull request for this.
+          required: false

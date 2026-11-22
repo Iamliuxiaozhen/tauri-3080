@@ -1,0 +1,280 @@
+name: PR gate
+
+# The required status check for every pull request.
+# Aggregated into the single `pr-gate` job so branch protection only needs one
+# entry, and so a lint failure can never be merged by accident.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+    branches: [main]
+
+concurrency:
+  group: pr-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  NODE_VERSION: '22'
+
+jobs:
+  metadata:
+    name: Metadata
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      docs-only: ${{ steps.changes.outputs.docs-only }}
+      has-changes: ${{ steps.changes.outputs.has-changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Detect a documentation-only change
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # `git diff` fails when the base commit is not in this clone (fork
+          # PRs); fetching the base ref first keeps the check reliable.
+          git fetch --no-tags --depth=1 origin "$BASE_SHA" || true
+          changed="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" || true)"
+          if [ -z "$changed" ]; then
+            echo "has-changes=false" >> "$GITHUB_OUTPUT"
+            echo "docs-only=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has-changes=true" >> "$GITHUB_OUTPUT"
+          echo "Changed files:"
+          echo "$changed"
+
+          # Docs-only means: markdown, images, issue templates and licence.
+          # Workflows and source count as code, because a broken workflow is a
+          # broken repository.
+          if echo "$changed" | grep -vE '^(.*\.(md|png|jpg|jpeg|gif|webp|svg)|LICENSE|\.github/(ISSUE_TEMPLATE|PULL_REQUEST_TEMPLATE\.md|CODEOWNERS))$' | grep -q .; then
+            echo "docs-only=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs-only=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm test -- --reporter=verbose
+
+      - name: Build
+        run: npm run build
+
+  rust:
+    name: Rust (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            patchelf
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Check formatting
+        if: runner.os == 'Linux'
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+
+      - name: Unit tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+  smoke:
+    name: Smoke build
+    needs: [metadata, frontend]
+    if: needs.metadata.outputs.docs-only != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            patchelf \
+            xvfb \
+            dbus-x11
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          key: smoke-gate
+
+      - name: Build
+        run: npm run build
+
+      - name: Build the binary
+        run: cargo build --manifest-path src-tauri/Cargo.toml --features custom-protocol
+
+      - name: Start the stand-in service on port 3080
+        run: |
+          set -euo pipefail
+          mkdir -p smoke/www
+          printf '<!doctype html><title>3080</title><h1>local service</h1>' > smoke/www/index.html
+          (cd smoke/www && python3 -m http.server 3080 --bind 127.0.0.1 >"$RUNNER_TEMP/http.log" 2>&1 &)
+          for _ in $(seq 1 40); do
+            if curl -fsS -o /dev/null http://127.0.0.1:3080/; then exit 0; fi
+            sleep 0.25
+          done
+          echo "the stand-in service did not start" >&2
+          exit 1
+
+      - name: Smoke run
+        shell: bash
+        env:
+          TAURI_3080_SMOKE: ${{ github.workspace }}/smoke/report.json
+          TAURI_3080_CONFIG_HOME: ${{ runner.temp }}/tauri-3080-config
+          WEBKIT_DISABLE_COMPOSITING_MODE: '1'
+          GDK_BACKEND: x11
+        run: |
+          set -euo pipefail
+          mkdir -p "$(dirname "$TAURI_3080_SMOKE")" "$TAURI_3080_CONFIG_HOME"
+          xvfb-run -a --server-args='-screen 0 1280x800x24' \
+            dbus-run-session -- ./src-tauri/target/debug/tauri-3080
+          test -s "$TAURI_3080_SMOKE"
+          cat "$TAURI_3080_SMOKE"
+          python3 - <<'PY'
+          import json, os, sys
+          report = json.load(open(os.environ["TAURI_3080_SMOKE"], encoding="utf-8"))
+          required = ("window_created", "frontend_ready", "ipc_ok", "config_loaded", "navigated")
+          failed = [key for key in required if not report.get(key)]
+          if failed or not report.get("ok"):
+              print("smoke report failed:", ", ".join(failed) or "ok=false", file=sys.stderr)
+              print(json.dumps(report, indent=2), file=sys.stderr)
+              sys.exit(1)
+          print("smoke report OK")
+          PY
+
+      - name: Upload the smoke report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-report
+          path: |
+            smoke/report.json
+            ${{ runner.temp }}/tauri-3080-config/
+          if-no-files-found: warn
+          retention-days: 7
+
+  pr-gate:
+    name: PR gate
+    if: always()
+    needs: [metadata, frontend, rust, smoke]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Evaluate the required jobs
+        env:
+          METADATA: ${{ needs.metadata.result }}
+          FRONTEND: ${{ needs.frontend.result }}
+          RUST: ${{ needs.rust.result }}
+          SMOKE: ${{ needs.smoke.result }}
+        run: |
+          set -euo pipefail
+          echo "metadata=$METADATA"
+          echo "frontend=$FRONTEND"
+          echo "rust=$RUST"
+          echo "smoke=$SMOKE"
+
+          # A skipped smoke job is fine (documentation-only change); anything
+          # else has to be a success.
+          fail() {
+            echo "::error::$1"
+            exit 1
+          }
+
+          [ "$METADATA" = "success" ] || fail "the metadata job did not succeed"
+          [ "$FRONTEND" = "success" ] || fail "the frontend job did not succeed"
+          [ "$RUST" = "success" ] || fail "the Rust jobs did not succeed"
+          case "$SMOKE" in
+            success | skipped) ;;
+            *) fail "the smoke job did not succeed" ;;
+          esac
+          echo "All required checks passed."

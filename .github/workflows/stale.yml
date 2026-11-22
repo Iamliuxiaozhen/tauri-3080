@@ -1,0 +1,53 @@
+name: Stale
+
+# Keeps the issue tracker honest without closing anything abruptly: issues and
+# pull requests that have seen no activity for a while are labelled, then closed
+# only after a further waiting period.
+
+on:
+  schedule:
+    - cron: '41 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    name: Mark and close stale threads
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Run the stale action
+        uses: actions/stale@v11
+        with:
+          days-before-stale: 60
+          days-before-close: 21
+          # Issues waiting for more information go stale sooner.
+          days-before-issue-stale: 30
+          stale-issue-label: 'status: blocked'
+          stale-pr-label: 'status: blocked'
+          stale-issue-message: |
+            This issue has been quiet for a while. It will be closed in three
+            weeks unless there is more activity.
+
+            If you can still reproduce it, a comment with the current version
+            and your OS is enough to keep it open.
+          stale-pr-message: |
+            This pull request has been quiet for a while. It will be closed in
+            three weeks unless there is more activity.
+
+            If you are still working on it, leaving a comment (or converting it
+            back to a draft) keeps it open.
+          close-issue-message: |
+            Closing for now because there has been no activity. Please open a
+            new issue if the problem persists — a link to this one is welcome.
+          close-pr-message: |
+            Closing because the pull request has been inactive. Feel free to
+            reopen it when you pick the work back up.
+          exempt-issue-labels: 'status: triaged,help wanted,good first issue'
+          exempt-pr-labels: 'status: ready,status: draft,ci: release'
+          exempt-all-milestones: true
+          remove-stale-when-updated: true
+          operations-per-run: 60

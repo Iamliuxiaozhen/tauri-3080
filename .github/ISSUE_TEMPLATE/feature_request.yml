@@ -1,0 +1,74 @@
+name: Feature request
+description: Suggest a capability or an improvement.
+title: 'feat: '
+labels: ['kind: feature']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! Please describe the **problem** first — the
+        solution is much easier to discuss once the need is clear.
+
+        This project aims to stay small. Features that can be a pre-launch hook
+        or a `config.toml` option are usually a better fit than new UI.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe your workflow and where it hurts today.
+      placeholder: |
+        I keep three local services on different ports and ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have considered
+      description: Existing workarounds, other tools, a hook script, a config edit.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Launcher / window
+        - Pre-launch hooks
+        - Profiles
+        - Name & icon
+        - Languages / translations
+        - Settings window
+        - Tray / native menu
+        - Packaging / installers
+        - Documentation
+        - Other
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Platforms this matters for
+      multiple: true
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - All platforms
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched the existing issues and discussions first.
+          required: true
+        - label: I would be willing to work on this myself.
+          required: false

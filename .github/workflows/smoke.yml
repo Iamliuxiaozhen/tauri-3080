@@ -1,0 +1,166 @@
+name: Smoke test
+
+# Boots the real application on a virtual X server and verifies that it creates
+# its window, loads the bundled frontend, answers IPC and navigates to the
+# profile URL. Runs nightly, on demand, and on every change to the launcher or
+# the hook runner.
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src-tauri/**'
+      - 'src/**'
+      - 'index.html'
+      - 'settings.html'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/smoke.yml'
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  NODE_VERSION: '22'
+
+jobs:
+  smoke:
+    name: Smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            label: linux
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            patchelf \
+            xvfb \
+            dbus-x11
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          key: smoke
+
+      - name: Build the frontend
+        run: npm run build
+
+      - name: Build the binary
+        run: cargo build --manifest-path src-tauri/Cargo.toml --features custom-protocol
+
+      - name: Start the stand-in service on port 3080
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p smoke/www
+          cat > smoke/www/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head><meta charset="utf-8" /><title>stand-in service</title></head>
+            <body><h1>127.0.0.1:3080</h1></body>
+          </html>
+          HTML
+          (cd smoke/www && python3 -m http.server 3080 --bind 127.0.0.1 >"$RUNNER_TEMP/http.log" 2>&1 &)
+          for _ in $(seq 1 40); do
+            if curl -fsS -o /dev/null http://127.0.0.1:3080/; then
+              echo "the stand-in service is up"
+              exit 0
+            fi
+            sleep 0.25
+          done
+          echo "::error::the stand-in service did not start"
+          exit 1
+
+      - name: Run the smoke test
+        shell: bash
+        env:
+          TAURI_3080_SMOKE: ${{ github.workspace }}/smoke/report.json
+          TAURI_3080_CONFIG_HOME: ${{ runner.temp }}/tauri-3080-config
+          WEBKIT_DISABLE_COMPOSITING_MODE: '1'
+          GDK_BACKEND: x11
+        run: |
+          set -euo pipefail
+          mkdir -p "$(dirname "$TAURI_3080_SMOKE")" "$TAURI_3080_CONFIG_HOME"
+          xvfb-run -a --server-args='-screen 0 1280x800x24' \
+            dbus-run-session -- ./src-tauri/target/debug/tauri-3080
+          test -s "$TAURI_3080_SMOKE"
+          cat "$TAURI_3080_SMOKE"
+
+      - name: Assert the report
+        shell: bash
+        env:
+          TAURI_3080_SMOKE: ${{ github.workspace }}/smoke/report.json
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          with open(os.environ["TAURI_3080_SMOKE"], encoding="utf-8") as handle:
+              report = json.load(handle)
+
+          required = ("window_created", "frontend_ready", "ipc_ok", "config_loaded", "navigated")
+          missing = [key for key in required if not report.get(key)]
+          if missing or not report.get("ok"):
+              print("smoke check failed:", ", ".join(missing) or "ok=false", file=sys.stderr)
+              print(json.dumps(report, indent=2), file=sys.stderr)
+              sys.exit(1)
+
+          print(f"smoke OK in {report['durations_ms']['total']} ms on {report['platform']}")
+          PY
+
+      - name: Show the configuration that was generated
+        if: always()
+        run: |
+          find "${RUNNER_TEMP:-/tmp}/tauri-3080-config" -maxdepth 3 -type f -print -exec sed -n '1,40p' {} \; || true
+
+      - name: Upload the smoke report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-report-${{ matrix.label }}
+          path: |
+            smoke/report.json
+            ${{ runner.temp }}/tauri-3080-config/
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,114 @@
+# Path-based pull request labelling (actions/labeler v7).
+#
+# Every rule maps a label to the files it covers. Keep this in sync with the
+# label descriptions in .github/labels.yml.
+
+'area: frontend':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/**'
+          - 'index.html'
+          - 'settings.html'
+          - 'vite.config.ts'
+          - 'vitest.config.ts'
+          - 'tsconfig.json'
+
+'area: backend':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src-tauri/src/**'
+          - 'src-tauri/Cargo.toml'
+          - 'src-tauri/Cargo.lock'
+          - 'src-tauri/build.rs'
+          - 'src-tauri/tauri.conf.json'
+          - 'src-tauri/capabilities/**'
+
+'area: ui':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/styles/**'
+          - 'src/settings/**'
+          - 'src/launcher/**'
+
+'area: i18n':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/i18n/**'
+          - 'src-tauri/src/i18n.rs'
+
+'area: config':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src-tauri/src/config.rs'
+          - 'src-tauri/src/state.rs'
+          - 'src-tauri/src/platform.rs'
+
+'area: hooks':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src-tauri/src/prelaunch.rs'
+
+'area: icons':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'assets/**'
+          - 'src-tauri/icons/**'
+          - 'public/**'
+          - 'src-tauri/src/icons.rs'
+
+'area: ci':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/labeler.yml'
+          - 'rustfmt.toml'
+          - 'eslint.config.js'
+          - '.prettierrc.json'
+          - '.prettierignore'
+          - '.gitattributes'
+
+'area: docs':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'LICENSE'
+
+'area: templates':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/ISSUE_TEMPLATE/**'
+          - '.github/PULL_REQUEST_TEMPLATE.md'
+
+'target: linux':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src-tauri/src/platform_info.rs'
+          - 'docs/platforms/linux.md'
+
+'target: macos':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src-tauri/src/platform_info.rs'
+
+'target: windows':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src-tauri/src/platform_info.rs'
+
+'dependencies':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'package-lock.json'
+          - 'src-tauri/Cargo.toml'
+          - 'src-tauri/Cargo.lock'
+
+'ci: release':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/release.yml'
+
+'ci: smoke':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/smoke.yml'

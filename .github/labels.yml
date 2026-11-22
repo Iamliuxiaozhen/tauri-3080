@@ -1,0 +1,151 @@
+# Repository label taxonomy.
+#
+# Applied by .github/workflows/labels.yml on every push to main that touches
+# this file. Keep names in sync with .github/labeler.yml.
+
+# Kind -----------------------------------------------------------------------
+- name: 'kind: bug'
+  color: 'd73a4a'
+  description: Something is broken or behaves unexpectedly.
+
+- name: 'kind: feature'
+  color: '0e8a16'
+  description: A new capability or a meaningful improvement.
+
+- name: 'kind: question'
+  color: 'd876e3'
+  description: A question about usage or behaviour.
+
+- name: 'kind: chore'
+  color: 'c5def5'
+  description: Maintenance work with no user-visible change.
+
+- name: 'kind: security'
+  color: 'b60205'
+  description: Security-sensitive change; handle with care.
+
+# Area -----------------------------------------------------------------------
+- name: 'area: frontend'
+  color: '1d76db'
+  description: TypeScript, HTML, Vite and the test suite under src/.
+
+- name: 'area: backend'
+  color: '5319e7'
+  description: Rust code in src-tauri/.
+
+- name: 'area: ui'
+  color: 'a2eeef'
+  description: Launcher or settings interface, styles and layout.
+
+- name: 'area: config'
+  color: '006b75'
+  description: config.toml, profiles, atomic writes and migrations.
+
+- name: 'area: hooks'
+  color: 'fbca04'
+  description: Pre-launch script discovery, execution and timeouts.
+
+- name: 'area: i18n'
+  color: 'f9d0c4'
+  description: Translations and locale handling.
+
+- name: 'area: icons'
+  color: 'ff9f1c'
+  description: Application icon, icon import and platform icon handling.
+
+- name: 'area: ci'
+  color: 'ededed'
+  description: Workflows, linters and tooling configuration.
+
+- name: 'area: docs'
+  color: '0075ca'
+  description: README, guides, comments and release notes.
+
+- name: 'area: templates'
+  color: 'cfd3d7'
+  description: Issue and pull request templates.
+
+# Target ---------------------------------------------------------------------
+- name: 'target: linux'
+  color: 'b4a7d6'
+  description: Affects Linux packaging or behaviour.
+
+- name: 'target: macos'
+  color: 'c2e0c6'
+  description: Affects macOS packaging or behaviour.
+
+- name: 'target: windows'
+  color: 'bfd4f2'
+  description: Affects Windows packaging or behaviour.
+
+# CI -------------------------------------------------------------------------
+- name: 'ci: release'
+  color: '0052cc'
+  description: Release workflow, versioning and artifacts.
+
+- name: 'ci: smoke'
+  color: '1d76db'
+  description: The headless smoke test.
+
+# Status ---------------------------------------------------------------------
+- name: 'status: needs info'
+  color: 'fbca04'
+  description: Waiting for reproduction steps or environment details.
+
+- name: 'status: triaged'
+  color: '0e8a16'
+  description: Reviewed and accepted by a maintainer.
+
+- name: 'status: blocked'
+  color: 'e11d21'
+  description: Cannot proceed until something else is resolved.
+
+- name: 'status: draft'
+  color: 'cfd3d7'
+  description: Draft pull request, work in progress.
+
+- name: 'status: ready'
+  color: '2cbe4e'
+  description: Ready for review.
+
+# Size -----------------------------------------------------------------------
+- name: 'size/XS'
+  color: 'ededed'
+  description: Fewer than 10 changed lines.
+
+- name: 'size/S'
+  color: 'c9def5'
+  description: 10 to 49 changed lines.
+
+- name: 'size/M'
+  color: 'a2d2f5'
+  description: 50 to 249 changed lines.
+
+- name: 'size/L'
+  color: '7ab8f5'
+  description: 250 to 499 changed lines.
+
+- name: 'size/XL'
+  color: '4a90e2'
+  description: 500 or more changed lines; please consider splitting.
+
+# Other ----------------------------------------------------------------------
+- name: 'dependencies'
+  color: '0366d6'
+  description: Dependency updates (npm or Cargo).
+
+- name: 'good first issue'
+  color: '7057ff'
+  description: A self-contained change, suitable for a first contribution.
+
+- name: 'help wanted'
+  color: '008672'
+  description: Extra attention from the community is welcome.
+
+- name: 'duplicate'
+  color: 'cfd3d7'
+  description: Already reported elsewhere.
+
+- name: 'wontfix'
+  color: 'ffffff'
+  description: Working as intended, or out of scope.

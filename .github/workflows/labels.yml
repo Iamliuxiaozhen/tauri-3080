@@ -1,0 +1,237 @@
+name: Labels
+
+# Declares the repository labels (so a fresh fork has the same taxonomy) and
+# applies the automatic labels that cannot be derived from file paths.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+  issues:
+    types: [opened, edited, reopened]
+  push:
+    branches: [main]
+    paths:
+      - '.github/labels.yml'
+      - '.github/workflows/labels.yml'
+      - '.github/labeler.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Creates/updates every label declared in .github/labels.yml.
+  sync:
+    name: Sync the label definitions
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Apply labels.yml
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+
+            // A tiny, purpose-built parser: labels.yml only contains a flat list
+            // of name/color/description entries, so this avoids adding a YAML
+            // dependency to the workflow.
+            const labels = [];
+            let current = null;
+            for (const raw of fs.readFileSync('.github/labels.yml', 'utf8').split('\n')) {
+              const line = raw.trim();
+              if (line.startsWith('- name:')) {
+                current = { name: unquote(line.slice('- name:'.length).trim()) };
+                labels.push(current);
+              } else if (current && line.startsWith('color:')) {
+                current.color = unquote(line.slice('color:'.length).trim()).replace(/^#/, '');
+              } else if (current && line.startsWith('description:')) {
+                current.description = unquote(line.slice('description:'.length).trim());
+              } else if (line === '' || line.startsWith('#')) {
+                current = null;
+              }
+            }
+
+            const unquote = (value) => value.replace(/^['"]|['"]$/g, '');
+              return value.replace(/^['"]|['"]$/g, '');
+            }
+
+            const existing = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              owner,
+              repo,
+              per_page: 100,
+            });
+            const byName = new Map(existing.map((label) => [label.name, label]));
+
+            for (const label of labels) {
+              const current = byName.get(label.name);
+              if (!current) {
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name: label.name,
+                  color: label.color,
+                  description: label.description ?? '',
+                });
+                core.info(`created ${label.name}`);
+                continue;
+              }
+              if (current.color !== label.color || (current.description ?? '') !== (label.description ?? '')) {
+                await github.rest.issues.updateLabel({
+                  owner,
+                  repo,
+                  name: label.name,
+                  new_name: label.name,
+                  color: label.color,
+                  description: label.description ?? '',
+                });
+                core.info(`updated ${label.name}`);
+              }
+            }
+
+            // Stale labels declared by this repository but removed from the
+            // file are reported, not deleted: deleting a label removes it from
+            // every issue, which should be a deliberate act.
+            const declared = new Set(labels.map((label) => label.name));
+            const managedPrefixes = ['area:', 'ci:', 'target:', 'kind:', 'priority:', 'status:'];
+            const stale = existing.filter(
+              (label) =>
+                !declared.has(label.name) &&
+                managedPrefixes.some((prefix) => label.name.startsWith(prefix)),
+            );
+            for (const label of stale) {
+              core.warning(`label '${label.name}' is managed but missing from .github/labels.yml`);
+            }
+
+  # Path-based labelling for pull requests.
+  paths:
+    name: Label by changed files
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Apply labeler.yml
+        uses: actions/labeler@v7
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+          sync-labels: true
+
+  # Event-based labelling for pull requests: size, kind and review state.
+  pull-request:
+    name: Label the pull request
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Apply the event labels
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const pull = context.payload.pull_request;
+            if (!pull) return;
+
+            const add = new Set();
+            const remove = new Set();
+            const { owner, repo } = context.repo;
+            const issue_number = pull.number;
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: issue_number,
+              per_page: 100,
+            });
+            const changed = files.reduce((total, file) => total + file.changes, 0);
+
+            // Size buckets, mirroring the well-known convention.
+            const size =
+              changed < 10 ? 'size/XS'
+              : changed < 50 ? 'size/S'
+              : changed < 250 ? 'size/M'
+              : changed < 500 ? 'size/L'
+              : 'size/XL';
+            for (const bucket of ['size/XS', 'size/S', 'size/M', 'size/L', 'size/XL']) {
+              if (bucket === size) add.add(bucket); else remove.add(bucket);
+            }
+
+            if (pull.draft) { add.add('status: draft'); remove.add('status: ready'); }
+            else { add.add('status: ready'); remove.add('status: draft'); }
+
+            if (pull.user.type === 'Bot') add.add('dependencies');
+
+            const labels = [
+              ...new Set([...((pull.labels ?? []).map((label) => label.name)), ...add]),
+            ].filter((label) => !remove.has(label));
+
+            await github.rest.issues.setLabels({
+              owner,
+              repo,
+              issue_number,
+              labels,
+            });
+            core.info(`labels: ${labels.join(', ') || '(none)'}`);
+
+  # Event-based labelling for issues: derive the kind from the template that
+  # was used and flag reports that miss reproduction steps.
+  issue:
+    name: Label the issue
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Apply the event labels
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const issue = context.payload.issue;
+            if (!issue || issue.pull_request) return;
+
+            const body = issue.body ?? '';
+            const title = issue.title ?? '';
+            const labels = new Set((issue.labels ?? []).map((label) => label.name));
+            const { owner, repo } = context.repo;
+            const issue_number = issue.number;
+
+            const has = (pattern) => pattern.test(body);
+
+            if (has(/tauri-3080 version/i)) labels.add('kind: bug');
+            else if (has(/feature request|is your feature request/i)) labels.add('kind: feature');
+            else if (has(/translation|i18n|locale/i)) labels.add('area: i18n');
+            else if (has(/documentation|readme/i)) labels.add('area: docs');
+            else labels.add('kind: question');
+
+            // A bug report without steps is not actionable.
+            const steps = /(steps to reproduce|how to reproduce)/i.test(body);
+            const version = /tauri-3080 version/i.test(body) && !/tauri-3080 version[^\n]*(\b|\n)\s*(unknown|n\/a)/i.test(body);
+            if (labels.has('kind: bug') && !steps) labels.add('status: needs info');
+            if (labels.has('kind: bug') && !version) labels.add('status: needs info');
+
+            if (/\[x\]\s*i (have )?searched/i.test(body)) labels.add('status: triaged');
+
+            await github.rest.issues.setLabels({
+              owner,
+              repo,
+              issue_number,
+              labels: [...labels],
+            });
+            core.info(`labels: ${[...labels].join(', ') || '(none)'}`);

@@ -1,0 +1,55 @@
+name: Translation
+description: Report a wrong translation or offer to add a language.
+title: 'docs(i18n): '
+labels: ['area: i18n']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The UI ships with English, Simplified Chinese, Traditional Chinese and
+        Brazilian Portuguese. Translations live in `src/i18n/<tag>.ts` and are
+        checked for completeness by `npm test`.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of translation issue is this?
+      options:
+        - A string is wrong or awkward
+        - A string is missing or untranslated
+        - A language is not supported yet
+        - Layout breaks with my language
+    validations:
+      required: true
+
+  - type: input
+    id: locale
+    attributes:
+      label: Language tag
+      placeholder: e.g. zh-TW, pt-BR, ja-JP
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Quote the current text and the suggested replacement, with the screen it appears on.
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: A picture makes layout problems much easier to understand.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I read the "Adding a language" section of CONTRIBUTING.md.
+          required: false
+        - label: I would be willing to open a pull request for this.
+          required: false

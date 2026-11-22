@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Iamliuxiaozhen/tauri-3080/security/advisories/new
+    about: Please report security issues privately, never in a public issue.
+  - name: Questions and ideas
+    url: https://github.com/Iamliuxiaozhen/tauri-3080/discussions
+    about: Ask usage questions or float an idea before opening a feature request.
+  - name: Contributing guide
+    url: https://github.com/Iamliuxiaozhen/tauri-3080/blob/main/CONTRIBUTING.md
+    about: How to set up the project, the commit convention and the review process.

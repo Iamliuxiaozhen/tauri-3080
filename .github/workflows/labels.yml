@@ -45,6 +45,7 @@ jobs:
             // A tiny, purpose-built parser: labels.yml only contains a flat list
             // of name/color/description entries, so this avoids adding a YAML
             // dependency to the workflow.
+            const unquote = (value) => value.replace(/^['"]|['"]$/g, '');
             const labels = [];
             let current = null;
             for (const raw of fs.readFileSync('.github/labels.yml', 'utf8').split('\n')) {
@@ -59,10 +60,6 @@ jobs:
               } else if (line === '' || line.startsWith('#')) {
                 current = null;
               }
-            }
-
-            const unquote = (value) => value.replace(/^['"]|['"]$/g, '');
-              return value.replace(/^['"]|['"]$/g, '');
             }
 
             const existing = await github.paginate(github.rest.issues.listLabelsForRepo, {

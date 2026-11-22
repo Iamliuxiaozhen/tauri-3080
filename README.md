@@ -21,6 +21,13 @@ Linux · macOS · Windows · English · 简体中文 · 繁體中文 · Portugu�
 
 ---
 
+<div align="center">
+  <img src="docs/screenshots/launcher.png" alt="The launcher window while the pre-launch hook runs" width="720" />
+  <img src="docs/screenshots/settings.png" alt="The settings window" width="720" />
+</div>
+
+---
+
 ## Why
 
 A local web UI is great until you have to keep a browser tab for it. This app
@@ -195,6 +202,19 @@ src-tauri/src/          # Rust backend
 The window first loads the bundled page, runs the hook there and only then
 navigates to the profile URL — so a slow hook shows progress instead of a
 connection error.
+
+## Development without a Tauri runtime
+
+`npm run dev` serves both pages in a normal browser for quick UI work. Append
+`?mock` (and optionally `&locale=zh-CN`) to use a fake bridge with sample
+profiles and a simulated hook run:
+
+```text
+http://localhost:1420/index.html?mock
+http://localhost:1420/settings.html?mock&locale=pt-BR
+```
+
+The mock lives in `src/dev/` and is compiled into development builds only.
 
 ## Testing
 

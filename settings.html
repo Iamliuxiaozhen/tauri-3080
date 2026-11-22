@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Settings</title>
+    <link rel="stylesheet" href="/src/styles/base.css" />
+  </head>
+  <body class="surface">
+    <div id="app" class="settings-shell" role="main" aria-busy="true">
+      <nav class="settings-nav" aria-label="Settings sections">
+        <div class="settings-nav__brand">
+          <img id="nav-icon" class="avatar" alt="" width="40" height="40" />
+          <div>
+            <p class="settings-nav__name" id="nav-name"></p>
+            <p class="settings-nav__version" id="nav-version"></p>
+          </div>
+        </div>
+        <ul class="settings-nav__list" id="nav-list" role="tablist"></ul>
+      </nav>
+
+      <div class="settings-content">
+        <div id="toast" class="toast" role="status" hidden></div>
+        <section class="settings-section" data-section="appearance" hidden>
+          <h2 id="appearance-heading"></h2>
+          <p id="appearance-description" class="settings-section__lead"></p>
+          <div class="card">
+            <div class="field">
+              <label class="field__label" id="display-name-label" for="display-name"></label>
+              <input
+                class="input"
+                id="display-name"
+                type="text"
+                maxlength="64"
+                autocomplete="off"
+              />
+              <p class="field__hint" id="display-name-hint"></p>
+            </div>
+            <div class="field">
+              <span class="field__label" id="icon-label"></span>
+              <div class="icon-row">
+                <img id="icon-preview" class="avatar avatar--large" alt="" width="72" height="72" />
+                <div class="icon-row__actions">
+                  <button id="pick-icon" class="button button--primary" type="button"></button>
+                  <button id="reset-icon" class="button button--ghost" type="button"></button>
+                </div>
+              </div>
+              <p class="field__hint" id="icon-hint"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" id="locale-label" for="locale-select"></label>
+              <select class="input" id="locale-select"></select>
+              <p class="field__hint" id="locale-hint"></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" data-section="profiles" hidden>
+          <h2 id="profiles-heading"></h2>
+          <p id="profiles-description" class="settings-section__lead"></p>
+          <div class="card">
+            <ul class="profile-list" id="profile-list"></ul>
+            <button id="add-profile" class="button button--primary" type="button"></button>
+          </div>
+          <form class="card profile-form" id="profile-form" hidden novalidate>
+            <h3 id="profile-form-title"></h3>
+            <div class="field">
+              <label class="field__label" id="profile-name-label" for="profile-name"></label>
+              <input
+                class="input"
+                id="profile-name"
+                type="text"
+                maxlength="64"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" id="profile-url-label" for="profile-url"></label>
+              <input
+                class="input"
+                id="profile-url"
+                type="url"
+                spellcheck="false"
+                autocomplete="off"
+              />
+              <p class="field__hint" id="profile-url-hint"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" id="profile-mode-label" for="profile-mode"></label>
+              <select class="input" id="profile-mode"></select>
+              <p class="field__hint" id="profile-mode-hint"></p>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label
+                  class="field__label"
+                  id="profile-timeout-label"
+                  for="profile-timeout"
+                ></label>
+                <input
+                  class="input"
+                  id="profile-timeout"
+                  type="number"
+                  min="1"
+                  max="600"
+                  step="1"
+                />
+              </div>
+              <div class="field">
+                <label class="field__label" id="profile-wait-label" for="profile-wait"></label>
+                <input class="input" id="profile-wait" type="number" min="1" max="600" step="1" />
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label" id="profile-script-label" for="profile-script"></label>
+              <input
+                class="input"
+                id="profile-script"
+                type="text"
+                spellcheck="false"
+                autocomplete="off"
+              />
+              <p class="field__hint" id="profile-script-hint"></p>
+            </div>
+            <p class="form-error" id="profile-form-error" role="alert" hidden></p>
+            <div class="form-actions">
+              <button id="profile-save" class="button button--primary" type="submit"></button>
+              <button id="profile-cancel" class="button button--ghost" type="button"></button>
+              <button
+                id="profile-delete"
+                class="button button--danger"
+                type="button"
+                hidden
+              ></button>
+            </div>
+          </form>
+        </section>
+
+        <section class="settings-section" data-section="hooks" hidden>
+          <h2 id="hooks-heading"></h2>
+          <p id="hooks-description" class="settings-section__lead"></p>
+          <div class="card">
+            <div class="field">
+              <label class="field__label" id="hooks-profile-label" for="hooks-profile"></label>
+              <select class="input" id="hooks-profile"></select>
+            </div>
+            <div class="code-block">
+              <div class="code-block__header">
+                <span id="hooks-path"></span>
+                <button
+                  id="open-scripts"
+                  class="button button--ghost button--small"
+                  type="button"
+                ></button>
+              </div>
+              <pre class="code" id="hooks-preview"></pre>
+            </div>
+            <p class="field__hint" id="hooks-hint"></p>
+          </div>
+        </section>
+
+        <section class="settings-section" data-section="window" hidden>
+          <h2 id="window-heading"></h2>
+          <p id="window-description" class="settings-section__lead"></p>
+          <div class="card">
+            <div class="field">
+              <label class="field__label" id="default-profile-label" for="default-profile"></label>
+              <select class="input" id="default-profile"></select>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="close-to-tray" />
+              <span class="switch__track" aria-hidden="true"></span>
+              <span class="switch__label" id="close-to-tray-label"></span>
+            </label>
+            <div class="form-actions">
+              <button id="save-window" class="button button--primary" type="button"></button>
+              <button id="reload-config" class="button button--ghost" type="button"></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" data-section="about" hidden>
+          <h2 id="about-heading"></h2>
+          <div class="card">
+            <dl class="about-grid">
+              <dt id="about-version-label"></dt>
+              <dd id="about-version"></dd>
+              <dt id="about-platform-label"></dt>
+              <dd id="about-platform"></dd>
+              <dt id="about-config-label"></dt>
+              <dd><code id="about-config"></code></dd>
+              <dt id="about-theme-label"></dt>
+              <dd id="about-theme"></dd>
+            </dl>
+            <div class="form-actions">
+              <button id="open-config" class="button button--ghost" type="button"></button>
+              <button id="open-logs" class="button button--ghost" type="button"></button>
+            </div>
+            <p class="field__hint" id="about-license"></p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script type="module" src="/src/settings/main.ts"></script>
+  </body>
+</html>

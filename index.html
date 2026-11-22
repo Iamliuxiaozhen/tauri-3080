@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>127.0.0.1:3080</title>
+    <link rel="stylesheet" href="/src/styles/base.css" />
+  </head>
+  <body class="surface">
+    <div id="app" class="app-shell" role="main" aria-busy="true">
+      <header class="topbar" id="topbar" hidden>
+        <div class="topbar__identity">
+          <img id="profile-icon" class="avatar" alt="" width="36" height="36" />
+          <div class="topbar__text">
+            <h1 id="profile-name" class="topbar__title"></h1>
+            <p id="profile-url" class="topbar__subtitle"></p>
+          </div>
+        </div>
+        <div class="topbar__actions">
+          <button id="reload-button" class="button button--ghost" type="button" hidden></button>
+          <button id="new-window-button" class="button button--ghost" type="button" hidden></button>
+          <button id="settings-button" class="button button--ghost" type="button" hidden></button>
+        </div>
+      </header>
+
+      <section id="splash" class="splash" aria-live="polite">
+        <div class="splash__badge" aria-hidden="true">3080</div>
+        <h2 id="splash-title" class="splash__title">Starting…</h2>
+        <p id="splash-detail" class="splash__detail"></p>
+        <div class="progress" role="progressbar" aria-valuetext="idle">
+          <div class="progress__bar" id="progress-bar"></div>
+        </div>
+        <pre id="splash-log" class="log" hidden></pre>
+        <div class="splash__actions">
+          <button id="cancel-button" class="button button--ghost" type="button" hidden></button>
+          <button id="skip-button" class="button button--primary" type="button" hidden></button>
+        </div>
+        <p id="splash-hint" class="splash__hint"></p>
+      </section>
+
+      <section id="error-panel" class="panel panel--error" hidden>
+        <h2 id="error-title" class="panel__title"></h2>
+        <p id="error-message" class="panel__body"></p>
+        <pre id="error-log" class="log" hidden></pre>
+        <div class="panel__actions">
+          <button id="retry-button" class="button button--primary" type="button"></button>
+          <button id="error-settings-button" class="button button--ghost" type="button"></button>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="/src/launcher/main.ts"></script>
+  </body>
+</html>

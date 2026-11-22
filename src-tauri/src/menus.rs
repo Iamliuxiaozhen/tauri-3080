@@ -15,6 +15,12 @@ use crate::windows;
 /// Tray icon id.
 pub const TRAY_ID: &str = "main-tray";
 
+/// Accelerators advertised in the README and shown next to the menu items.
+pub const ACCEL_NEW_WINDOW: &str = "CmdOrCtrl+N";
+pub const ACCEL_SETTINGS: &str = "CmdOrCtrl+Comma";
+pub const ACCEL_RELOAD: &str = "CmdOrCtrl+R";
+pub const ACCEL_QUIT: &str = "CmdOrCtrl+Q";
+
 /// Menu ids handled by [`handle_event`].
 pub mod ids {
     pub const NEW_WINDOW: &str = "new-window";
@@ -34,14 +40,45 @@ pub fn build_menu<R: Runtime>(
 ) -> tauri::Result<Menu<R>> {
     let translate = |key: &str| i18n::lookup(locale, key);
 
+    let settings_item = MenuItem::with_id(
+        app,
+        ids::SETTINGS,
+        translate("menu.settings"),
+        true,
+        Some(ACCEL_SETTINGS),
+    )?;
+    let new_window_item = MenuItem::with_id(
+        app,
+        ids::NEW_WINDOW,
+        translate("menu.newWindow"),
+        true,
+        Some(ACCEL_NEW_WINDOW),
+    )?;
+    let about_item =
+        MenuItem::with_id(app, ids::ABOUT, translate("menu.about"), true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(
+        app,
+        ids::QUIT,
+        translate("menu.quit"),
+        true,
+        Some(ACCEL_QUIT),
+    )?;
+    let reload_item = MenuItem::with_id(
+        app,
+        ids::RELOAD,
+        translate("menu.reload"),
+        true,
+        Some(ACCEL_RELOAD),
+    )?;
+
     #[allow(unused_mut)]
     let mut app_menu = SubmenuBuilder::new(app, translate("menu.app"))
-        .text(ids::SETTINGS, translate("menu.settings"))
-        .text(ids::NEW_WINDOW, translate("menu.newWindow"))
+        .item(&settings_item)
+        .item(&new_window_item)
         .separator()
-        .text(ids::ABOUT, translate("menu.about"))
+        .item(&about_item)
         .separator()
-        .text(ids::QUIT, translate("menu.quit"))
+        .item(&quit_item)
         .build()?;
 
     let mut profile_items: Vec<MenuItem<R>> = Vec::new();
@@ -62,12 +99,12 @@ pub fn build_menu<R: Runtime>(
     }
     let profiles_menu = profiles_builder
         .separator()
-        .text(ids::NEW_WINDOW, translate("menu.newWindow"))
+        .item(&new_window_item)
         .build()?;
 
     let view_menu = SubmenuBuilder::new(app, translate("menu.view"))
-        .text(ids::RELOAD, translate("menu.reload"))
-        .text(ids::SETTINGS, translate("menu.settings"))
+        .item(&reload_item)
+        .item(&settings_item)
         .build()?;
 
     #[cfg(target_os = "macos")]
@@ -84,9 +121,9 @@ pub fn build_menu<R: Runtime>(
             .select_all()
             .build()?;
         app_menu = SubmenuBuilder::new(app, translate("menu.app"))
-            .text(ids::SETTINGS, translate("menu.settings"))
+            .item(&settings_item)
             .separator()
-            .text(ids::QUIT, translate("menu.quit"))
+            .item(&quit_item)
             .build()?;
         return MenuBuilder::new(app)
             .item(&app_menu)

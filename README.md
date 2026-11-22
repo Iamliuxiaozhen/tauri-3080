@@ -185,7 +185,8 @@ src/                    # web frontend (Vite + TypeScript, no framework)
 ├── launcher/           # progress screen → navigates to the profile URL
 ├── settings/           # appearance, profiles, hooks, windows, about
 ├── i18n/               # en / zh-CN / zh-TW / pt-BR catalogues
-└── lib/                # IPC bridge, launch state machine, DOM helpers
+├── lib/                # IPC bridge, launch state machine, DOM helpers
+└── dev/                # mock bridge for `npm run dev` (not shipped)
 
 src-tauri/src/          # Rust backend
 ├── commands.rs         # IPC surface

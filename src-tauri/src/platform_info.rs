@@ -139,13 +139,10 @@ mod windows {
 
         if let Some(hicon) = create_hicon(icon) {
             // SAFETY: sending messages to a window handle owned by this
-            // process. The HICON is intentionally leaked so Windows keeps
-            // using it for the lifetime of the window.
-            unsafe {
-                let _ = SendMessageW(raw, WM_SETICON, ICON_BIG as usize, hicon as isize);
-                let _ = SendMessageW(raw, WM_SETICON, ICON_SMALL as usize, hicon as isize);
-            }
-            std::mem::forget(hicon);
+            // process. The HICON is deliberately never destroyed: Windows uses
+            // it for the lifetime of the window and destroys it with the HWND.
+            let _ = unsafe { SendMessageW(raw, WM_SETICON, ICON_BIG as usize, hicon as isize) };
+            let _ = unsafe { SendMessageW(raw, WM_SETICON, ICON_SMALL as usize, hicon as isize) };
         }
     }
 

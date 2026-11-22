@@ -1,0 +1,94 @@
+[package]
+name = "tauri-3080"
+version = "0.1.0"
+description = "A tiny desktop launcher that opens 127.0.0.1:3080 in a native window, with pre-launch hooks and profiles."
+authors = ["Oliver Lin"]
+license = "MIT"
+repository = "https://github.com/Iamliuxiaozhen/tauri-3080"
+homepage = "https://github.com/Iamliuxiaozhen/tauri-3080"
+readme = "../README.md"
+keywords = ["tauri", "launcher", "localhost", "desktop"]
+categories = ["gui"]
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "tauri_3080_lib"
+# Desktop-only project: no mobile staticlib/cdylib artifacts needed.
+crate-type = ["rlib"]
+
+[features]
+default = []
+# Mirrors what `tauri build` enables: assets are embedded in the binary and the
+# dev server URL is ignored. `tauri dev` compiles without it.
+custom-protocol = ["tauri/custom-protocol"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.1", features = [] }
+
+[dependencies]
+tauri = { version = "2.12.1", features = ["tray-icon", "image-png"] }
+tauri-plugin-dialog = "2.8.4"
+tauri-plugin-opener = "2.7.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "1.2"
+toml_edit = "0.25"
+thiserror = "2.0"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "webp", "ico"] }
+dirs = "7.0"
+url = "2.5"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", features = ["NSRunningApplication", "NSApplication"] }
+objc2-foundation = { version = "0.3", features = ["NSString"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
+
+[lints.rust]
+unsafe_code = "warn"
+
+[lints.clippy]
+# `all` is the CI gate. A small, deliberate selection of pedantic lints is
+# promoted on top of it; everything else stays out of the way.
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+too_many_lines = "allow"
+assigning_clones = "allow"
+doc_markdown = "allow"
+cast_precision_loss = "allow"
+cast_possible_truncation = "allow"
+cast_sign_loss = "allow"
+cast_lossless = "allow"
+unreadable_literal = "allow"
+items_after_statements = "allow"
+struct_excessive_bools = "allow"
+wildcard_imports = "allow"
+single_match_else = "allow"
+map_unwrap_or = "allow"
+similar_names = "allow"
+fn_params_excessive_bools = "allow"
+unused_self = "allow"
+return_self_not_must_use = "allow"
+new_without_default = "allow"
+option_if_let_else = "allow"
+needless_pass_by_value = "allow"

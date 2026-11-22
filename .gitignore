@@ -1,0 +1,21 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.log
+npm-debug.log*
+.tmp/
+
+# Rust / Cargo
+target/
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# Local environment
+.env
+.env.*
+!.env.example

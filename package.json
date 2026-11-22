@@ -1,0 +1,54 @@
+{
+  "name": "tauri-3080",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A tiny desktop launcher that opens 127.0.0.1:3080 in a native window, with pre-launch hooks and profiles.",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/Iamliuxiaozhen/tauri-3080",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Iamliuxiaozhen/tauri-3080.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Iamliuxiaozhen/tauri-3080/issues"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
+    "smoke": "bash scripts/smoke.sh",
+    "verify": "npm run check && cargo test --manifest-path src-tauri/Cargo.toml"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "2.12.5",
+    "@tauri-apps/plugin-dialog": "2.8.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@tauri-apps/cli": "2.12.6",
+    "@types/node": "26.6.6",
+    "eslint": "10.15.0",
+    "globals": "17.14.0",
+    "jsdom": "31.0.1",
+    "prettier": "3.10.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.73.0",
+    "vite": "8.3.8",
+    "vitest": "5.1.1"
+  }
+}

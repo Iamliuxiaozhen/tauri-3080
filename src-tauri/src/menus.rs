@@ -71,8 +71,8 @@ pub fn build_menu<R: Runtime>(
         Some(ACCEL_RELOAD),
     )?;
 
-    #[allow(unused_mut)]
-    let mut app_menu = SubmenuBuilder::new(app, translate("menu.app"))
+    #[cfg(not(target_os = "macos"))]
+    let menu = SubmenuBuilder::new(app, translate("menu.app"))
         .item(&settings_item)
         .item(&new_window_item)
         .separator()
@@ -110,7 +110,16 @@ pub fn build_menu<R: Runtime>(
     #[cfg(target_os = "macos")]
     {
         // macOS expects an application menu first and an edit menu for the
-        // standard text shortcuts to work.
+        // standard text shortcuts to work. The application menu carries the
+        // standard "About/Settings/Quit" trio so it behaves like every other
+        // Mac app.
+        let app_menu = SubmenuBuilder::new(app, translate("menu.app"))
+            .item(&about_item)
+            .separator()
+            .item(&settings_item)
+            .separator()
+            .item(&quit_item)
+            .build()?;
         let edit_menu = SubmenuBuilder::new(app, translate("menu.edit"))
             .undo()
             .redo()
@@ -120,23 +129,18 @@ pub fn build_menu<R: Runtime>(
             .paste()
             .select_all()
             .build()?;
-        app_menu = SubmenuBuilder::new(app, translate("menu.app"))
-            .item(&settings_item)
-            .separator()
-            .item(&quit_item)
-            .build()?;
-        return MenuBuilder::new(app)
+        MenuBuilder::new(app)
             .item(&app_menu)
             .item(&edit_menu)
             .item(&profiles_menu)
             .item(&view_menu)
-            .build();
+            .build()
     }
 
     #[cfg(not(target_os = "macos"))]
     {
         MenuBuilder::new(app)
-            .item(&app_menu)
+            .item(&menu)
             .item(&profiles_menu)
             .item(&view_menu)
             .build()

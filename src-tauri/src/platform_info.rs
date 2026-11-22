@@ -6,6 +6,10 @@
 //! * the Windows taskbar icon, which is refreshed from the window handle.
 //!
 //! Everything else is delegated to Tauri.
+//!
+//! The crate lints against `unsafe_code`; the Objective-C calls below are the
+//! one exception and each one carries a SAFETY comment.
+#![allow(unsafe_code)]
 
 use std::path::Path;
 
@@ -78,7 +82,8 @@ pub fn reveal_in_file_manager(path: &Path) -> Result<(), String> {
 
 #[cfg(target_os = "macos")]
 mod macos {
-    use objc2::MainThreadMarker;
+    use objc2::rc::Retained;
+    use objc2::{AnyThread, MainThreadMarker};
     use objc2_app_kit::{NSApplication, NSImage};
     use objc2_foundation::NSData;
 
@@ -95,9 +100,12 @@ mod macos {
             .ok_or_else(|| "dock icons must be set from the main thread".to_owned())?;
         let application = NSApplication::sharedApplication(marker);
         let data = NSData::with_bytes(&png);
-        let image = NSImage::initWithData(NSImage::alloc(marker), &data)
+        // `NSImage` is not main-thread-only, but we hold the marker anyway
+        // because the dock icon itself must be changed on the main thread.
+        let image: Retained<NSImage> = NSImage::initWithData(NSImage::alloc(), &data)
             .ok_or_else(|| "could not decode the dock icon".to_owned())?;
-        // SAFETY: called on the main thread with a valid image instance.
+        // SAFETY: called on the main thread (the marker proves it) with a valid
+        // image instance.
         unsafe {
             application.setApplicationIconImage(Some(&image));
         }

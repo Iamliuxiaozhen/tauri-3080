@@ -971,7 +971,7 @@ url = "https://example.com"
             profiles: BTreeMap::new(),
         };
         let repairs = config.normalize();
-        assert!(!repairs.is_empty());
+        assert_ne!(repairs.len(), 0, "expected repairs: {repairs:?}");
         assert_eq!(config.settings.locale, "en");
         assert_eq!(config.settings.display_name, app_id::DEFAULT_DISPLAY_NAME);
         assert!(config.settings.icon_path.is_none());

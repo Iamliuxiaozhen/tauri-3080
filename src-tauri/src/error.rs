@@ -88,7 +88,7 @@ mod tests {
             Error::Message("boom".into()),
         ];
         for error in errors {
-            assert!(!error.to_string().is_empty());
+            assert_ne!(error.to_string(), "");
         }
     }
 }

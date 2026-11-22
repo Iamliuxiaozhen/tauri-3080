@@ -73,7 +73,7 @@ jobs:
         run: npm ci
 
       - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
 
       - name: Cache Rust artifacts
         uses: Swatinem/rust-cache@v2

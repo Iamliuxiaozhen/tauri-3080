@@ -75,7 +75,7 @@ generated notes and published artifacts before they go live.
 
 ### Build from source
 
-Requirements: Node.js 22+, Rust 1.77.2+, and the
+Requirements: Node.js 22+, Rust 1.100.0 (pinned in `rust-toolchain.toml`), and the
 [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS.
 
 ```bash

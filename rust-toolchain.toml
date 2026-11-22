@@ -1,0 +1,10 @@
+# Pinned so a new Rust release cannot turn a green `main` red overnight.
+# Bump this file and the `toolchain:` inputs in .github/workflows explicitly.
+#
+# Keep in sync with:
+#   - README.md  → Build from source
+#   - .github/workflows/{ci,pr-gate,release,smoke,security}.yml
+[toolchain]
+channel = "1.100.0"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

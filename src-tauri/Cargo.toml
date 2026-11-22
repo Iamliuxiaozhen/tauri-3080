@@ -5,12 +5,11 @@ description = "A tiny desktop launcher that opens 127.0.0.1:3080 in a native win
 authors = ["Oliver Lin"]
 license = "MIT"
 repository = "https://github.com/Iamliuxiaozhen/tauri-3080"
-homepage = "https://github.com/Iamliuxiaozhen/tauri-3080"
 readme = "../README.md"
 keywords = ["tauri", "launcher", "localhost", "desktop"]
 categories = ["gui"]
 edition = "2021"
-rust-version = "1.77.2"
+rust-version = "1.100"
 
 [lib]
 name = "tauri_3080_lib"

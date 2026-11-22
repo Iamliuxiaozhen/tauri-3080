@@ -20,27 +20,34 @@ use crate::icons::IconBitmap;
 ///
 /// Returns `Ok(false)` when the platform has no separate app-level icon and the
 /// window icon is all there is.
-pub fn set_application_icon(_icon: &IconBitmap, _app_name: &str) -> Result<bool, String> {
+pub fn set_application_icon(icon: &IconBitmap, app_name: &str) -> Result<bool, String> {
     #[cfg(target_os = "macos")]
     {
-        macos::set_dock_icon(_icon)?;
+        let _ = app_name;
+        macos::set_dock_icon(icon)?;
         Ok(true)
     }
 
     #[cfg(not(target_os = "macos"))]
     {
+        // On Linux and Windows the window icon is the application icon.
+        let _ = (icon, app_name);
         Ok(false)
     }
 }
 
 /// Refreshes the taskbar icon of a window on Windows.
-pub fn refresh_window_icon<R: tauri::Runtime>(
-    _window: &tauri::WebviewWindow<R>,
-    _icon: &IconBitmap,
-) {
+pub fn refresh_window_icon<R: tauri::Runtime>(window: &tauri::WebviewWindow<R>, icon: &IconBitmap) {
     #[cfg(windows)]
     {
-        windows::refresh_taskbar_icon(_window, _icon);
+        windows::refresh_taskbar_icon(window, icon);
+    }
+
+    #[cfg(not(windows))]
+    {
+        // Windows caches the taskbar icon per window class; elsewhere
+        // `WebviewWindow::set_icon` is enough.
+        let _ = (window, icon);
     }
 }
 

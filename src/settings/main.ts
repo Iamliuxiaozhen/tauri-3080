@@ -685,5 +685,16 @@ export async function bootSettings(api: Bridge = bridge()): Promise<void> {
 }
 
 if (typeof window !== 'undefined' && document.getElementById('nav-list')) {
-  void bootSettings();
+  if (import.meta.env.DEV) {
+    // `?mock` renders the UI without a Tauri runtime. The whole branch is
+    // dropped from production builds.
+    const { createMockBridge, mockRequested } = await import('../dev/mock-bridge');
+    if (mockRequested()) {
+      await bootSettings(createMockBridge('settings'));
+    } else {
+      await bootSettings();
+    }
+  } else {
+    await bootSettings();
+  }
 }

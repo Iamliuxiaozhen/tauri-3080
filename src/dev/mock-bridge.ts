@@ -228,7 +228,6 @@ export function createMockBridge(kind: WindowKind = 'main'): Bridge {
         console.info('[mock] would navigate to', url);
       }
     },
-    goHome: async () => {},
     openWindow: async () => {},
     openSettings: async () => {
       window.open('settings.html?mock', '_blank');

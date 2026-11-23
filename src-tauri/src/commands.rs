@@ -569,19 +569,6 @@ pub fn open_profile_url(window: WebviewWindow, url: String) -> Result<(), Error>
     Ok(())
 }
 
-/// Brings the launcher page back after a remote page replaced it.
-#[tauri::command]
-pub fn go_home(window: WebviewWindow) -> Result<(), Error> {
-    let page = if window.label() == windows::SETTINGS_LABEL {
-        "settings.html"
-    } else {
-        "index.html"
-    };
-    let target = windows::launcher_url(&window.app_handle().clone(), page);
-    window.navigate(tauri::Url::parse(&target)?)?;
-    Ok(())
-}
-
 /// Cancels the hook running for `id`, if any.
 #[tauri::command]
 pub fn cancel_prelaunch(id: String) -> bool {

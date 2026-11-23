@@ -133,7 +133,6 @@ export interface Bridge {
   runPrelaunch(id: string): Promise<PrelaunchRunResult>;
   cancelPrelaunch(id: string): Promise<boolean>;
   openProfileUrl(url: string): Promise<void>;
-  goHome(): Promise<void>;
   openWindow(profileId?: string): Promise<void>;
   openSettings(): Promise<void>;
   closeWindow(): Promise<void>;

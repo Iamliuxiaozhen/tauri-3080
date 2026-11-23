@@ -77,7 +77,6 @@ pub fn run() {
             commands::app_icon_data_url,
             commands::run_prelaunch,
             commands::open_profile_url,
-            commands::go_home,
             commands::cancel_prelaunch,
             commands::open_window,
             commands::open_settings,

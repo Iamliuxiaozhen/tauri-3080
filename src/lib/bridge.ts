@@ -60,7 +60,6 @@ export function createTauriBridge(): Bridge {
     runPrelaunch: (id: string) => invoke<PrelaunchRunResult>('run_prelaunch', { id }),
     cancelPrelaunch: (id: string) => invoke<boolean>('cancel_prelaunch', { id }),
     openProfileUrl: (url: string) => invoke<void>('open_profile_url', { url }),
-    goHome: () => invoke<void>('go_home'),
     openWindow: (profileId?: string) =>
       invoke<void>('open_window', { profileId: profileId ?? null }),
     openSettings: () => invoke<void>('open_settings'),

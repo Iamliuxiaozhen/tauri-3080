@@ -271,6 +271,9 @@ pub fn window_title(display_name: &str, profile_name: &str) -> String {
 
 /// Returns every open window to its bundled page, re-running the hook.
 ///
+/// A window that has navigated to a profile URL is no longer showing our UI, so
+/// the menu, the tray and a second app launch are the ways back.
+///
 /// Reloading with `window.location.reload()` would refresh the remote page
 /// instead, which defeats the point: the pre-launch script would not run again
 /// and the user would stay on a service that may have been restarted.

@@ -132,6 +132,13 @@ reviewers will wait until you mark it ready.
    `src-tauri/tauri.conf.json` (they must match).
 2. Add an entry to `CHANGELOG.md`.
 3. Merge to `main`.
-4. Run the **Release** workflow with the matching `vX.Y.Z` tag. It creates a
-   **draft** release with installers for all three platforms.
-5. Review the generated notes and artifacts, then publish.
+4. Push the tag (`git tag -a vX.Y.Z && git push origin vX.Y.Z`). The **Release**
+   workflow builds installers for all three platforms and creates a **draft**
+   release.
+5. Rewrite the notes for a first release — GitHub's generated notes only cover
+   merged pull requests, so `docs/release-notes-v0.1.0.md` is the model to copy.
+6. Review the notes and artifacts, then publish:
+
+   ```bash
+   gh release edit vX.Y.Z --draft=false
+   ```

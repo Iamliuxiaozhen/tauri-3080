@@ -50,6 +50,13 @@ pub fn run() {
     let smoke_report = std::env::var_os(SMOKE_ENV).map(std::path::PathBuf::from);
 
     let builder = tauri::Builder::default()
+        // Must be the first plugin: a second launch hands its arguments to the
+        // running instance and exits before any window is created.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            // The user launched the app again, so surface the existing window
+            // instead of starting a second process.
+            let _ = windows::show_or_create_main(app, None);
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![

@@ -38,8 +38,9 @@ page loads.
 - **One job, done well.** The default profile opens `http://127.0.0.1:3080`.
 - **Pre-launch hooks.** A script in `~/.config/tauri-3080/scripts/<profile>/`
   runs _before_ the page loads, with a timeout and live output.
-- **Multiple windows.** Every window is independent: its own profile, its own
-  hook run, its own process.
+- **Multiple windows, one process.** Every window is independent: its own
+  profile, its own hook run. Launching the app again focuses the existing
+  instance instead of starting a second one.
 - **Make it yours.** Rename the application and replace its icon from the
   settings page — window title, taskbar, tray and dock all follow.
 - **Hand-editable configuration.** Everything lives in one commented

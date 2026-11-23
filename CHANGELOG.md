@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with a TCP connection before navigating.
 - Multiple launcher windows, one per profile, opened from the window, the
   native menu or the tray.
+- Single instance: launching the app again focuses the running window instead of
+  starting a second process.
 - Settings window to rename the application, replace its icon (PNG, JPEG,
   WebP, GIF, ICO) and restore the default, in five sections.
 - Internationalisation: English, Simplified Chinese, Traditional Chinese and

@@ -215,9 +215,10 @@ pub fn handle_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
             let _ = windows::open_settings_window(app, WindowKind::Main);
         }
         ids::RELOAD => {
-            if let Some(window) = app.get_webview_window(windows::MAIN_LABEL) {
-                let _ = window.eval("window.location.reload()");
-            }
+            // Reload means "open the launcher again", not "refresh whatever page
+            // is currently shown": once a window has navigated to the profile
+            // URL, re-running the hook is the useful action.
+            windows::reload_all(app);
         }
         ids::QUIT => {
             app.exit(0);

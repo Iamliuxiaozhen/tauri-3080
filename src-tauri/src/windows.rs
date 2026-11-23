@@ -269,6 +269,30 @@ pub fn window_title(display_name: &str, profile_name: &str) -> String {
     }
 }
 
+/// Returns every open window to its bundled page, re-running the hook.
+///
+/// Reloading with `window.location.reload()` would refresh the remote page
+/// instead, which defeats the point: the pre-launch script would not run again
+/// and the user would stay on a service that may have been restarted.
+///
+/// Returns the number of windows that were asked to navigate.
+pub fn reload_all<R: Runtime>(app: &AppHandle<R>) -> usize {
+    let mut reloaded = 0;
+    for (label, window) in app.webview_windows() {
+        let page = if label == SETTINGS_LABEL {
+            "settings.html"
+        } else {
+            "index.html"
+        };
+        if let Ok(url) = tauri::Url::parse(&launcher_url(app, page)) {
+            if window.navigate(url).is_ok() {
+                reloaded += 1;
+            }
+        }
+    }
+    reloaded
+}
+
 /// Forgets a closed window.
 pub fn on_window_closed(label: &str) {
     unbind_window(label);

@@ -179,6 +179,8 @@ pub fn install_tray<R: Runtime>(app: &AppHandle<R>, locale: &str) -> tauri::Resu
     let icon = tauri::image::Image::from_bytes(crate::icons::TRAY_ICON_PNG)?;
 
     TrayIconBuilder::with_id(TRAY_ID)
+        // The tooltip carries the user-facing name, so renaming the app has to
+        // update it too (see `refresh_tray`).
         .tooltip(translate("app.name"))
         .icon(icon)
         .menu(&menu)
@@ -234,6 +236,41 @@ pub fn refresh<R: Runtime>(app: &AppHandle<R>) {
     };
     let config = state.snapshot();
     install(app, &config.settings.locale);
+    refresh_tray(app, &config.settings.display_name, &config.settings.locale);
+}
+
+/// Updates the tray tooltip, icon and menu after a rename, re-icon or language
+/// change.
+///
+/// The tray is created once and lives for the whole process, so every setting it
+/// reflects has to be pushed again explicitly. On Linux the menu of an existing
+/// tray icon can only have its *contents* replaced, which is exactly what
+/// setting a fresh menu does.
+pub fn refresh_tray<R: Runtime>(app: &AppHandle<R>, display_name: &str, locale: &str) {
+    let Some(tray) = app.tray_by_id(TRAY_ID) else {
+        return;
+    };
+
+    let _ = tray.set_tooltip(Some(display_name));
+
+    if let Some(state) = app.try_state::<AppState>() {
+        let config = state.snapshot();
+        // The tray shows the application icon, scaled down by the OS.
+        let icon = state.app_icon(config.settings.icon_path.as_deref());
+        let _ = tray.set_icon(Some(icon.to_tauri()));
+    }
+
+    let translate = |key: &str| i18n::lookup(locale, key);
+    if let Ok(menu) = MenuBuilder::new(app)
+        .text(ids::SHOW, translate("tray.show"))
+        .text(ids::NEW_WINDOW, translate("tray.newWindow"))
+        .text(ids::SETTINGS, translate("tray.settings"))
+        .separator()
+        .text(ids::QUIT, translate("tray.quit"))
+        .build()
+    {
+        let _ = tray.set_menu(Some(menu));
+    }
 }
 
 #[cfg(test)]

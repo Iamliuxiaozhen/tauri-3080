@@ -239,6 +239,7 @@ pub fn refresh_icons<R: Runtime>(app: &AppHandle<R>) {
     }
 
     let _ = crate::platform_info::set_application_icon(&icon, &config.settings.display_name);
+    crate::menus::refresh_tray(app, &config.settings.display_name, &config.settings.locale);
 }
 
 /// URL of a bundled page, honouring the dev server when running `tauri dev`.
